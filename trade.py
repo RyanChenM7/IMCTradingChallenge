@@ -14,7 +14,10 @@ Returns:
     Number/volume of units to perform for the transaction.
 """
 def volume_function(predicted, best_price, max_possible_volume):
-    return max_possible_volume
+    
+    percent = min(0.5, abs(predicted - best_price) / predicted)
+    
+    return percent * max_possible_volume
 
 
 """
@@ -75,7 +78,6 @@ class Trader:
         # Iterate over all the keys (the available products) contained in the order depths
         for product in state.order_depths.keys():
 
-            
             # Forced skip if there is no data or insufficient data
             if product not in state.market_trades or len(state.market_trades[product]) < 2:
                 continue
@@ -97,31 +99,33 @@ class Trader:
             """
             if len(order_depth.sell_orders) > 0:
 
-                best_ask = min(order_depth.sell_orders.keys())
-                best_ask_volume = order_depth.sell_orders[best_ask]
-
+                asks = [k for k in order_depth.sell_orders.keys() if k < acceptable_price]
+                
                 # Check if the lowest ask (sell order) is lower than the defined acceptable value
-                if best_ask < acceptable_price:
-                    volume = volume_function(acceptable_price, best_ask, best_ask_volume)
-                    
-                    # Then we buy
-                    orders.append(Order(
-                        product, best_ask, volume
-                    ))
+                if asks:
+                    for ask_price in asks:
+                        ask_price_volume = abs(order_depth.sell_orders[ask_price])
+                        volume = volume_function(acceptable_price, ask_price, ask_price_volume)
+                        
+                        # Then we buy
+                        orders.append(Order(
+                            product, ask_price, volume
+                        ))
 
             if len(order_depth.buy_orders) > 0:
 
-                best_bid = max(order_depth.buy_orders.keys())
-                best_bid_volume = order_depth.buy_orders[best_bid]
+                asks = [k for k in order_depth.buy_orders.keys() if k > acceptable_price]
 
                 # Check if the highest bid (buy order) is higher than the defined acceptable value
-                if best_bid > acceptable_price:
-                    volume = volume_function(acceptable_price, best_bid, best_bid_volume)
-
-                    # Then we sell
-                    orders.append(Order(
-                        product, best_bid, -volume
-                    ))
+                if asks:
+                    for bid_price in asks:
+                        bid_price_volume = order_depth.buy_orders[bid_price]
+                        volume = volume_function(acceptable_price, bid_price, bid_price_volume)
+                        
+                        # Then we sell
+                        orders.append(Order(
+                            product, ask_price, -volume
+                        ))
 
             # Add all the above orders to the result dict
             result[product] = orders
