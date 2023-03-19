@@ -88,7 +88,6 @@ class Trader:
 
             orders: list[Order] = []
             
-
             predictor = PREDICTORS[product]
             acceptable_price = predictor(market_data)
 
@@ -119,12 +118,12 @@ class Trader:
                 # Check if the highest bid (buy order) is higher than the defined acceptable value
                 if asks:
                     for bid_price in asks:
-                        bid_price_volume = order_depth.buy_orders[bid_price]
+                        bid_price_volume = abs(order_depth.buy_orders[bid_price])
                         volume = volume_function(acceptable_price, bid_price, bid_price_volume)
                         
                         # Then we sell
                         orders.append(Order(
-                            product, ask_price, -volume
+                            product, bid_price, -volume
                         ))
 
             # Add all the above orders to the result dict
