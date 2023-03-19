@@ -1,5 +1,5 @@
 from datamodel import Listing, OrderDepth, Trade, TradingState
-from trade import Trader
+from trader import Trader
 timestamp = 1000
 
 listings = {

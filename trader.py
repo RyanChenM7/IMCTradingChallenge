@@ -99,7 +99,7 @@ class Trader:
                 asks.sort()
                 
                 # Check if the lowest ask (sell order) is lower than the defined acceptable value   
-                for ask_price in asks:
+                for ask_price in asks[:2]:
                     ask_price_volume = abs(order_depth.sell_orders[ask_price])
                     volume = volume_function(acceptable_price, ask_price, ask_price_volume)
                     
@@ -108,11 +108,11 @@ class Trader:
 
             if len(order_depth.buy_orders) > 0:
 
-                asks = [k for k in order_depth.buy_orders.keys() if k > acceptable_price]
-                asks.sort(reverse=True)
+                bids = [k for k in order_depth.buy_orders.keys() if k > acceptable_price]
+                bids.sort(reverse=True)
 
                 # Check if the highest bid (buy order) is higher than the defined acceptable value
-                for bid_price in asks:
+                for bid_price in bids[:2]:
                     bid_price_volume = abs(order_depth.buy_orders[bid_price])
                     volume = volume_function(acceptable_price, bid_price, bid_price_volume)
                     
@@ -121,7 +121,7 @@ class Trader:
 
             # Add all the above orders to the result dict
             result[product] = orders
-        
+
         print(result)
         return result
 
